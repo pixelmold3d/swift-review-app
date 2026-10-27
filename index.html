@@ -1,255 +1,2038 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWIFT REVIEW - Operational Management Software</title>
+    <title>SWIFT REVIEW | Google Reviews Card Operational Software</title>
     <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Three.js for 3D Earth & India Globe -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js for 3D Rotating Earth + India Animation in Final Depository -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Supabase JS Client -->
+    <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:ital,wght@0,800;0,900;1,800;1,900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Montserrat', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
+                    colors: {
+                        swift: {
+                            bg: '#1c222d',
+                            dark: '#13171e',
+                            card: '#232b36',
+                            blue: '#2b7fff',
+                            lightBlue: '#56a3ff',
+                            border: '#313c4b'
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f131a; color: #f3f4f6; }
-        .glass-card { background: rgba(28, 34, 45, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .animate-spin-slow { animation: spin 20s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #0f131a; }
-        ::-webkit-scrollbar-thumb { background: #2b7fff; border-radius: 4px; }
+        body {
+            background-color: #1c222d;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(43, 127, 255, 0.09) 0%, transparent 35%),
+                radial-gradient(circle at 85% 85%, rgba(43, 127, 255, 0.07) 0%, transparent 40%);
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .swift-surface {
+            background: rgba(28, 34, 45, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.6);
+        }
+
+        .swift-card-hover {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .swift-card-hover:hover {
+            transform: translateY(-4px);
+            border-color: rgba(43, 127, 255, 0.55);
+            box-shadow: 0 24px 48px -12px rgba(43, 127, 255, 0.25);
+        }
+
+        /* Deleted by Admin Strikethrough Effect */
+        .deleted-case-card {
+            position: relative;
+            background: rgba(35, 20, 24, 0.78) !important;
+            border-color: rgba(239, 68, 68, 0.5) !important;
+        }
+        .deleted-case-card .strike-target {
+            text-decoration: line-through;
+            text-decoration-color: #ef4444;
+            text-decoration-thickness: 2px;
+            opacity: 0.6;
+        }
+        .deleted-diagonal-line {
+            background: repeating-linear-gradient(
+                -45deg,
+                rgba(239, 68, 68, 0.06),
+                rgba(239, 68, 68, 0.06) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+        }
+
+        /* Google-style Search Bar Glow */
+        .google-search-bar {
+            background: #232b36;
+            border: 1px solid #384454;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+            transition: all 0.25s ease;
+        }
+        .google-search-bar:focus-within {
+            background: #26303d;
+            border-color: #2b7fff;
+            box-shadow: 0 6px 28px rgba(43, 127, 255, 0.28);
+        }
+
+        @keyframes beaconPulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.25); opacity: 0.4; }
+        }
+        .india-pulse {
+            animation: beaconPulse 2s infinite ease-in-out;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-[#2b7fff] selection:text-white">
+<body class="flex flex-col min-h-screen selection:bg-blue-500 selection:text-white">
 
-    <!-- SUPABASE CONFIGURATION MODAL (Optional override) -->
-    <div id="configModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="glass-card max-w-lg w-full rounded-2xl p-6 sm:p-8 shadow-2xl border border-[#2b7fff]/30">
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="w-10 h-10 rounded-xl bg-[#2b7fff]/20 flex items-center justify-center text-[#2b7fff] font-bold text-xl">⚙️</div>
-                <h3 class="text-xl font-bold text-white">Supabase Configuration</h3>
-            </div>
-            <p class="text-gray-300 text-sm mb-6">
-                Your Supabase credentials are pre-configured. You can update or review them below if needed.
-            </p>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Supabase Project URL</label>
-                    <input type="text" id="inputSupabaseUrl" class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Supabase Publishable Key</label>
-                    <input type="password" id="inputSupabaseKey" class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                </div>
-                <button onclick="saveSupabaseConfig()" class="w-full py-3 bg-[#2b7fff] hover:bg-[#1f65e5] text-white font-bold rounded-xl transition shadow-lg shadow-[#2b7fff]/30">
-                    Save & Continue
+    <!-- ==================== TOP NAVIGATION BAR ==================== -->
+    <header class="sticky top-0 z-40 swift-surface border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
+            <!-- Brand Logo (Crisp SVG with #1c222d background, #2b7fff SWIFT & #ffffff REVIEW) -->
+            <div class="flex items-center gap-3">
+                <button type="button" id="brand-home-btn" onclick="switchView('landing')" class="flex items-center gap-3 group focus:outline-none text-left" title="Return to Home Portal">
+                    <div class="relative flex items-center py-1 px-2.5 rounded-xl bg-[#1c222d] border border-slate-700/70 shadow-inner">
+                        <svg class="h-9 sm:h-11 w-auto" viewBox="0 0 470 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="swiftBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#2b7fff" />
+                                    <stop offset="65%" stop-color="#3a8cff" />
+                                    <stop offset="100%" stop-color="#5ca4ff" />
+                                </linearGradient>
+                                <filter id="logoShadow" x="-10%" y="-10%" width="120%" height="130%">
+                                    <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.55"/>
+                                </filter>
+                            </defs>
+                            <!-- Speed streaks extending left of SWIFT -->
+                            <g fill="#2b7fff">
+                                <polygon points="4,22 36,22 34,25 4,25" />
+                                <polygon points="12,35 32,35 30,38 12,38" />
+                                <polygon points="2,49 28,49 26,52 2,52" />
+                                <polygon points="75,30 102,30 100,33 75,33" />
+                                <polygon points="145,45 170,45 168,48 145,48" />
+                                <polygon points="198,25 222,25 220,28 198,28" />
+                            </g>
+                            <!-- SWIFT Text (#2b7fff) -->
+                            <text x="24" y="56" filter="url(#logoShadow)" fill="url(#swiftBlueGrad)" font-family="Montserrat, sans-serif" font-weight="900" font-style="italic" font-size="54" letter-spacing="1">SWIFT</text>
+                            <!-- Horizontal speed-streak cutouts on the letters (#1c222d) -->
+                            <g fill="#1c222d">
+                                <rect x="19" y="27" width="19" height="2.8" />
+                                <rect x="84" y="41" width="23" height="2.8" />
+                                <rect x="149" y="23" width="17" height="2.6" />
+                                <rect x="175" y="47" width="19" height="2.8" />
+                                <rect x="204" y="34" width="17" height="2.8" />
+                            </g>
+                            <!-- REVIEW Text (#ffffff) -->
+                            <text x="234" y="56" filter="url(#logoShadow)" fill="#ffffff" font-family="Montserrat, sans-serif" font-weight="900" font-style="italic" font-size="54" letter-spacing="1">REVIEW</text>
+                        </svg>
+                    </div>
                 </button>
-            </div>
-        </div>
-    </div>
 
-    <!-- HEADER / NAVIGATION -->
-    <header class="border-b border-gray-800 bg-[#141821]/90 sticky top-0 z-40 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            
-            <!-- BRAND LOGO (SVG Recreation of User Upload) -->
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('landing')">
-                <svg viewBox="0 0 420 80" class="h-10 sm:h-12 w-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="blueStreak" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#1e5bf0" />
-                            <stop offset="100%" stop-color="#3b82f6" />
-                        </linearGradient>
-                        <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
-                            <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.6"/>
-                        </filter>
-                    </defs>
-                    <g filter="url(#dropShadow)">
-                        <text x="10" y="58" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-style="italic" font-size="52" fill="#2b7fff" letter-spacing="1">SWIFT</text>
-                        <path d="M 60 15 L 85 15 L 75 65 L 50 65 Z" fill="#141821" opacity="0.3"/>
-                        <path d="M 140 15 L 165 15 L 155 65 L 130 65 Z" fill="#141821" opacity="0.3"/>
-                        <text x="175" y="58" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-style="italic" font-size="52" fill="#ffffff" letter-spacing="1">REVIEW</text>
-                    </g>
-                </svg>
-            </div>
-
-            <!-- STATUS & CONFIG BUTTON -->
-            <div class="flex items-center space-x-3">
-                <div id="cloudStatusBadge" class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span id="cloudStatusText">Cloud Connected</span>
+                <!-- Real-Time Supabase Sync Status Pill -->
+                <div class="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80">
+                    <span id="cloud-status-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="cloud-status-text" class="text-[11px] font-mono font-semibold text-emerald-400 uppercase tracking-wider">Supabase Connected</span>
                 </div>
-                <button onclick="openConfigModal()" class="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-xl transition border border-gray-700 flex items-center space-x-1.5">
-                    <span>⚙️ Config</span>
+            </div>
+
+            <!-- Active Portal Navigation Buttons -->
+            <div class="flex items-center gap-2 sm:gap-2.5">
+                <button type="button" id="nav-btn-landing" onclick="switchView('landing')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 bg-blue-600/20 text-blue-400 border border-blue-500/40">
+                    <i class="fa-solid fa-house"></i>
+                    <span class="hidden sm:inline">Home</span>
+                </button>
+                <button type="button" id="nav-btn-creation" onclick="switchView('creation')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-300 hover:bg-slate-800 border border-transparent">
+                    <i class="fa-solid fa-user-plus text-blue-400"></i>
+                    <span class="hidden md:inline">Account Creation</span>
+                </button>
+                <button type="button" id="nav-btn-schedule" onclick="promptPassword('schedule')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-300 hover:bg-slate-800 border border-transparent">
+                    <i class="fa-solid fa-list-check text-red-400"></i>
+                    <span class="hidden md:inline">Work Schedule</span>
+                    <span id="badge-work-count" class="px-1.5 py-0.5 text-[11px] font-mono rounded-full bg-red-500/20 text-red-300 border border-red-500/30">0</span>
+                    <i class="fa-solid fa-lock text-[10px] text-slate-400"></i>
+                </button>
+                <button type="button" id="nav-btn-depository" onclick="promptPassword('depository')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-300 hover:bg-slate-800 border border-transparent">
+                    <i class="fa-solid fa-earth-asia text-emerald-400"></i>
+                    <span class="hidden md:inline">Final Depository</span>
+                    <span id="badge-final-count" class="px-1.5 py-0.5 text-[11px] font-mono rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">0</span>
+                    <i class="fa-solid fa-lock text-[10px] text-slate-400"></i>
+                </button>
+                <button type="button" id="nav-btn-config" onclick="openConfigModal()" class="p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs transition" title="Database Cloud Settings">
+                    <i class="fa-solid fa-gear"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- MAIN CONTAINER -->
-    <main class="flex-grow flex flex-col">
+    <!-- ==================== MAIN APPLICATION VIEWPORT ==================== -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        <!-- VIEW 1: HOME / LANDING PAGE (3 GATED ENTRIES) -->
-        <section id="view-landing" class="flex-grow flex items-center justify-center p-4 sm:p-6 lg:p-8">
-            <div class="max-w-5xl w-full mx-auto">
-                <div class="text-center mb-12">
-                    <span class="px-3 py-1 rounded-full bg-[#2b7fff]/10 text-[#2b7fff] text-xs font-bold tracking-widest uppercase border border-[#2b7fff]/20">Operational Management Portal</span>
-                    <h1 class="text-3xl sm:text-5xl font-extrabold text-white mt-4 mb-3 tracking-tight">Google Reviews Card Software</h1>
-                    <p class="text-gray-400 text-sm sm:text-base max-w-2xl mx-auto">Select a portal below to register a new client case, manage active fulfillment schedules, or search the permanent client depository.</p>
+        <!-- ===================================================================== -->
+        <!-- VIEW 1: HOME / LANDING PAGE WITH 3 GATED ENTRIES                      -->
+        <!-- ===================================================================== -->
+        <section id="view-landing" class="space-y-10">
+            <!-- Hero Logo Banner -->
+            <div class="swift-surface rounded-3xl p-8 sm:p-10 text-center relative overflow-hidden border border-slate-700/70">
+                <div class="absolute -top-24 -left-24 w-72 h-72 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Large Featured SWIFT REVIEW Logo -->
+                <div class="inline-flex items-center justify-center px-6 py-4 rounded-2xl bg-[#1c222d] border border-slate-700/80 shadow-2xl mb-5">
+                    <svg class="h-14 sm:h-20 md:h-24 w-auto" viewBox="0 0 470 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="heroSwiftBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#2b7fff" />
+                                <stop offset="65%" stop-color="#3a8cff" />
+                                <stop offset="100%" stop-color="#5ca4ff" />
+                            </linearGradient>
+                            <filter id="heroLogoShadow" x="-10%" y="-10%" width="120%" height="130%">
+                                <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#000000" flood-opacity="0.65"/>
+                            </filter>
+                        </defs>
+                        <g fill="#2b7fff">
+                            <polygon points="4,22 36,22 34,25 4,25" />
+                            <polygon points="12,35 32,35 30,38 12,38" />
+                            <polygon points="2,49 28,49 26,52 2,52" />
+                            <polygon points="75,30 102,30 100,33 75,33" />
+                            <polygon points="145,45 170,45 168,48 145,48" />
+                            <polygon points="198,25 222,25 220,28 198,28" />
+                        </g>
+                        <text x="24" y="56" filter="url(#heroLogoShadow)" fill="url(#heroSwiftBlue)" font-family="Montserrat, sans-serif" font-weight="900" font-style="italic" font-size="54" letter-spacing="1">SWIFT</text>
+                        <g fill="#1c222d">
+                            <rect x="19" y="27" width="19" height="2.8" />
+                            <rect x="84" y="41" width="23" height="2.8" />
+                            <rect x="149" y="23" width="17" height="2.6" />
+                            <rect x="175" y="47" width="19" height="2.8" />
+                            <rect x="204" y="34" width="17" height="2.8" />
+                        </g>
+                        <text x="234" y="56" filter="url(#heroLogoShadow)" fill="#ffffff" font-family="Montserrat, sans-serif" font-weight="900" font-style="italic" font-size="54" letter-spacing="1">REVIEW</text>
+                    </svg>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    
-                    <!-- Portal 1: Account Creation -->
-                    <div onclick="switchView('creation')" class="glass-card rounded-3xl p-6 sm:p-8 hover:border-[#2b7fff] transition-all duration-300 cursor-pointer group flex flex-col justify-between hover:shadow-2xl hover:shadow-[#2b7fff]/10 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-[#2b7fff]/5 rounded-full blur-2xl group-hover:bg-[#2b7fff]/15 transition-all"></div>
-                        <div>
-                            <div class="w-14 h-14 rounded-2xl bg-[#2b7fff]/20 text-[#2b7fff] flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
-                                📝
-                            </div>
-                            <h2 class="text-xl font-bold text-white mb-2">Account Creation</h2>
-                            <p class="text-gray-400 text-sm leading-relaxed">Register new shop owners, capture business profiles, configure activation schedules, and record booking payments.</p>
-                        </div>
-                        <div class="mt-8 flex items-center text-[#2b7fff] font-bold text-sm group-hover:translate-x-1 transition-transform">
-                            <span>Open Portal</span>
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </div>
-                    </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-white max-w-2xl mx-auto">
+                    Google Reviews Card Operational Management Software
+                </h1>
+                <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto mt-2">
+                    Select one of the three operational gateways below to onboard a new business, manage the active work schedule repository, or search the final depository.
+                </p>
 
-                    <!-- Portal 2: Work Schedule Repository -->
-                    <div onclick="promptPassword('schedule')" class="glass-card rounded-3xl p-6 sm:p-8 hover:border-amber-500 transition-all duration-300 cursor-pointer group flex flex-col justify-between hover:shadow-2xl hover:shadow-amber-500/10 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/15 transition-all"></div>
-                        <div>
-                            <div class="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
-                                📊
-                            </div>
-                            <h2 class="text-xl font-bold text-white mb-2">Work Schedule Repository</h2>
-                            <p class="text-gray-400 text-sm leading-relaxed">Backend queue tracking active client orders with red activation dates, delivery fulfillment, and status updates.</p>
-                        </div>
-                        <div class="mt-8 flex items-center text-amber-400 font-bold text-sm group-hover:translate-x-1 transition-transform">
-                            <span>Enter Password (310897)</span>
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </div>
+                <!-- Live Operational Metrics Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mt-8">
+                    <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 text-center">
+                        <span class="text-xs uppercase tracking-wider text-slate-400 block">Total Cases</span>
+                        <span id="stat-total" class="text-2xl sm:text-3xl font-bold font-mono text-white mt-1 block">0</span>
                     </div>
-
-                    <!-- Portal 3: Final Depository -->
-                    <div onclick="promptPassword('depository')" class="glass-card rounded-3xl p-6 sm:p-8 hover:border-emerald-500 transition-all duration-300 cursor-pointer group flex flex-col justify-between hover:shadow-2xl hover:shadow-emerald-500/10 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/15 transition-all"></div>
-                        <div>
-                            <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
-                                🌍
-                            </div>
-                            <h2 class="text-xl font-bold text-white mb-2">Final Depository</h2>
-                            <p class="text-gray-400 text-sm leading-relaxed">Google-style 3D search engine for delivered accounts with green/amber age tracking, editing, and archiving.</p>
-                        </div>
-                        <div class="mt-8 flex items-center text-emerald-400 font-bold text-sm group-hover:translate-x-1 transition-transform">
-                            <span>Enter Password (251195)</span>
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </div>
+                    <div class="bg-red-950/25 border border-red-500/30 rounded-2xl p-4 text-center">
+                        <span class="text-xs uppercase tracking-wider text-red-300 block">Work Schedule (Red)</span>
+                        <span id="stat-work" class="text-2xl sm:text-3xl font-bold font-mono text-red-400 mt-1 block">0</span>
                     </div>
+                    <div class="bg-emerald-950/25 border border-emerald-500/30 rounded-2xl p-4 text-center">
+                        <span class="text-xs uppercase tracking-wider text-emerald-300 block">Final Depository (Green)</span>
+                        <span id="stat-final-green" class="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 mt-1 block">0</span>
+                    </div>
+                    <div class="bg-amber-950/25 border border-amber-500/30 rounded-2xl p-4 text-center">
+                        <span class="text-xs uppercase tracking-wider text-amber-300 block">&ge; 4Y 11M Alert (Amber)</span>
+                        <span id="stat-final-amber" class="text-2xl sm:text-3xl font-bold font-mono text-amber-400 mt-1 block">0</span>
+                    </div>
+                </div>
+            </div>
 
+            <!-- 3 GATED ENTRIES GRID -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- PORTAL 1: ACCOUNT CREATION PAGE -->
+                <div id="portal-card-creation" role="button" tabindex="0" onclick="switchView('creation')" class="swift-surface swift-card-hover rounded-3xl p-7 flex flex-col justify-between cursor-pointer group relative overflow-hidden text-left">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 text-2xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-file-circle-plus"></i>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30 flex items-center gap-1.5">
+                                <i class="fa-solid fa-unlock text-[10px]"></i> Associate Entry
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-mono uppercase tracking-widest text-blue-400">Portal 01</span>
+                            <span class="text-xs font-mono text-slate-400">Auto 6-Digit ID</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-3">Account Creation Page</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                            Register new prospective business owners upon purchase approval. Captures owner &amp; shop details, Google Business Profile link, activation date, and payment tier (Booking Fee ₹120, Full Payment ₹600, or Custom Price).
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-bolt text-blue-400 mr-1"></i>Open Access</span>
+                        <span class="inline-flex items-center gap-2 text-sm font-semibold text-blue-400 group-hover:translate-x-1 transition">
+                            Open Account Creation <i class="fa-solid fa-arrow-right"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- PORTAL 2: WORK SCHEDULE REPOSITORY (PASSWORD PROTECTED - NO PASSWORD DISPLAYED) -->
+                <div id="portal-card-schedule" role="button" tabindex="0" onclick="promptPassword('schedule')" class="swift-surface swift-card-hover rounded-3xl p-7 flex flex-col justify-between cursor-pointer group relative overflow-hidden text-left">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="w-14 h-14 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 text-2xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-list-check"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="home-card-work-badge" class="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-red-500/20 text-red-300 border border-red-500/40">0 Pending</span>
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-lock text-[10px]"></i> Gated
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-xs font-mono uppercase tracking-widest text-red-400 mb-1">Portal 02</div>
+                        <h3 class="text-2xl font-bold text-white mb-3">Work Schedule Repository</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                            Backend production repository where scheduled cases display their Activation Date in <strong class="text-red-400">RED</strong>. Pick and work on cases and transfer delivered orders to the Final Depository.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+                        <span class="text-xs text-amber-300 font-medium"><i class="fa-solid fa-shield-halved mr-1"></i>Protected Access • Enter Password</span>
+                        <span class="inline-flex items-center gap-2 text-sm font-semibold text-red-400 group-hover:translate-x-1 transition">
+                            Unlock <i class="fa-solid fa-arrow-right"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- PORTAL 3: FINAL DEPOSITORY (PASSWORD PROTECTED - NO PASSWORD DISPLAYED) -->
+                <div id="portal-card-depository" role="button" tabindex="0" onclick="promptPassword('depository')" class="swift-surface swift-card-hover rounded-3xl p-7 flex flex-col justify-between cursor-pointer group relative overflow-hidden text-left">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-earth-asia"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="home-card-final-badge" class="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">0 Delivered</span>
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-lock text-[10px]"></i> Gated
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-xs font-mono uppercase tracking-widest text-emerald-400 mb-1">Portal 03</div>
+                        <h3 class="text-2xl font-bold text-white mb-3">Final Depository</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                            Google Search Engine style archive with a 3D rotating Earth + India globe. Delivered accounts show <strong class="text-emerald-400">GREEN</strong> activation dates and auto-transition to <strong class="text-amber-400">AMBER/YELLOW</strong> after 4 Years 11 Months.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+                        <span class="text-xs text-emerald-300 font-medium"><i class="fa-solid fa-shield-halved mr-1"></i>Protected Access • Enter Password</span>
+                        <span class="inline-flex items-center gap-2 text-sm font-semibold text-emerald-400 group-hover:translate-x-1 transition">
+                            Unlock <i class="fa-solid fa-arrow-right"></i>
+                        </span>
+                    </div>
                 </div>
             </div>
         </section>
 
+        <!-- ===================================================================== -->
+        <!-- VIEW 2: ACCOUNT CREATION PAGE                                         -->
+        <!-- ===================================================================== -->
+        <section id="view-creation" class="hidden space-y-6">
+            <div class="swift-surface rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <button type="button" onclick="switchView('landing')" class="text-xs font-mono text-blue-400 hover:underline flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Home Gateways
+                    </button>
+                    <h2 class="text-2xl font-bold text-white">New Prospect Account Creation</h2>
+                    <p class="text-xs sm:text-sm text-slate-400">Enter verified business details and payment confirmation to queue Google Reviews Card fulfilment.</p>
+                </div>
 
-        <!-- VIEW 2: ACCOUNT CREATION PAGE -->
-        <section id="view-creation" class="hidden flex-grow py-8 px-4 sm:px-6 lg:px-8">
-            <div class="max-w-3xl mx-auto">
-                <div class="flex items-center justify-between mb-8">
+                <div class="bg-slate-900/90 border border-blue-500/40 rounded-2xl px-5 py-3 flex items-center gap-4 self-start sm:self-auto">
                     <div>
-                        <button onclick="switchView('landing')" class="text-sm text-gray-400 hover:text-white flex items-center space-x-1 mb-2">
-                            <span>← Back to Home</span>
-                        </button>
-                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Client Account Creation</h2>
-                        <p class="text-gray-400 text-sm">Fill in prospect details upon purchase approval and booking fee collection.</p>
+                        <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400 block">Unique 6-Digit Account No.</span>
+                        <span id="displayGenAccountNo" class="text-2xl font-bold font-mono text-blue-400 tracking-wider">------</span>
                     </div>
-                    <div class="text-right">
-                        <span class="text-xs text-gray-500 block">Generated Account #</span>
-                        <span id="displayGenAccountNo" class="text-lg font-mono font-bold text-[#2b7fff]">------</span>
+                    <button type="button" onclick="regenerateAccountNo()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Generate another 6-digit account number">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </div>
+            </div>
+
+            <form id="creationForm" onsubmit="handleAccountSubmit(event)" class="swift-surface rounded-3xl p-6 sm:p-8 space-y-8">
+                <div>
+                    <h3 class="text-sm font-mono uppercase tracking-wider text-blue-400 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-store"></i> 1. Business &amp; Prospect Information
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Owner Name <span class="text-red-400">*</span></label>
+                            <input type="text" id="ownerName" required placeholder="e.g. Rahul Biswas"
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Shop Name <span class="text-red-400">*</span></label>
+                            <input type="text" id="shopName" required placeholder="e.g. Sprout Toy & Gift House"
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Business Type <span class="text-red-400">*</span></label>
+                            <input type="text" id="businessType" required placeholder="e.g. Retail Store / Restaurant / Clinic"
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Phone Number <span class="text-red-400">*</span></label>
+                            <input type="tel" id="phone" required placeholder="e.g. 9830098300"
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm font-mono focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Email Address <span class="text-red-400">*</span></label>
+                            <input type="email" id="email" required placeholder="e.g. owner@business.in"
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Shop Address / Google Plus Code <span class="text-red-400">*</span></label>
+                            <input type="text" id="address" required placeholder="e.g. SN Banerjee Rd, Barrackpore (QP47+2M)"
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Link of Google Business Profile <span class="text-red-400">*</span></label>
+                            <input type="url" id="profileLink" required placeholder="https://g.page/r/..."
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm font-mono focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">
+                                Activation Date <span class="text-red-400">*</span>
+                                <span class="ml-1 text-[11px] text-red-400 font-mono">(Marked RED in Schedule)</span>
+                            </label>
+                            <input type="date" id="activationDate" required
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-red-500/40 text-white text-sm font-mono focus:outline-none focus:border-red-400">
+                        </div>
                     </div>
                 </div>
 
-                <form id="creationForm" onsubmit="handleAccountSubmit(event)" class="glass-card rounded-3xl p-6 sm:p-8 space-y-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Shop Owner Name *</label>
-                            <input type="text" id="ownerName" required placeholder="e.g. Rahul Biswas" class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Shop Name *</label>
-                            <input type="text" id="shopName" required placeholder="e.g. Sprout Toy & Gift House" class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                        </div>
-                    </div>
+                <!-- 2. Payment Information -->
+                <div class="pt-6 border-t border-slate-800">
+                    <h3 class="text-sm font-mono uppercase tracking-wider text-blue-400 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-indian-rupee-sign"></i> 2. Payment Mode, Date &amp; Pricing Tier
+                    </h3>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Business Type *</label>
-                            <input type="text" id="businessType" required placeholder="e.g. Retail Toy & Gift Store" class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Phone Number *</label>
-                            <input type="tel" id="phone" required placeholder="e.g. 9830098300" class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Email Address</label>
-                            <input type="email" id="email" placeholder="e.g. owner@gmail.com" class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Activation Date *</label>
-                            <input type="date" id="activationDate" required class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Shop Address / Google Plus Code *</label>
-                        <textarea id="address" required rows="2" placeholder="e.g. Barrackpore, Kolkata, West Bengal or 7JWW+X4" class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Google Business Profile Link</label>
-                        <input type="url" id="profileLink" placeholder="e.g. https://maps.app.goo.gl/..." class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                    </div>
-
-                    <div class="border-t border-gray-800 pt-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Mode of Payment *</label>
-                            <select id="paymentMode" required class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                                <option value="UPI / QR">UPI / QR Code</option>
-                                <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Mode of Payment <span class="text-red-400">*</span></label>
+                            <select id="paymentMode" required
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm focus:outline-none focus:border-blue-500">
+                                <option value="UPI / QR Scan">UPI / QR Scan (GPay, PhonePe, Paytm)</option>
                                 <option value="Cash">Cash</option>
-                                <option value="Credit/Debit Card">Credit / Debit Card</option>
+                                <option value="Bank Transfer (NEFT/IMPS)">Bank Transfer (NEFT / IMPS)</option>
+                                <option value="Debit / Credit Card">Debit / Credit Card</option>
                             </select>
                         </div>
+
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Date of Payment *</label>
-                            <input type="date" id="paymentDate" required class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Date of Payment <span class="text-red-400">*</span></label>
+                            <input type="date" id="paymentDate" required
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm font-mono focus:outline-none focus:border-blue-500">
                         </div>
+
                         <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Type of Payment *</label>
-                            <select id="paymentType" required onchange="handlePaymentTypeChange()" class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
-                                <option value="Booking Fee (₹120)">Booking Fee (₹120)</option>
-                                <option value="Full Payment (₹600)">Full Payment (₹600)</option>
-                                <option value="Custom Price">Custom Price</option>
-                            </select>
+                            <label id="paymentAmountLabel" class="block text-xs font-medium text-slate-300 mb-1.5">Payment Amount (₹) <span class="text-red-400">*</span></label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3 text-slate-400 font-mono">₹</span>
+                                <input type="number" id="paymentAmountInput" value="120" readonly required min="1"
+                                    class="w-full pl-9 pr-4 py-3 rounded-xl bg-slate-900/60 border border-slate-700 text-emerald-400 font-mono font-bold text-base focus:outline-none">
+                            </div>
                         </div>
                     </div>
 
-                    <div id="customPriceContainer" class="hidden">
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Custom Price Amount (₹) *</label>
-                        <input type="number" id="customPriceAmount" placeholder="Enter custom amount" class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
+                    <label class="block text-xs font-medium text-slate-300 mb-2">Type of Payment <span class="text-red-400">*</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div onclick="selectPaymentTier('Booking Fee')" id="tier-card-booking" class="cursor-pointer rounded-2xl p-4 border border-blue-500 bg-blue-500/15 flex items-center justify-between transition">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="paymentTierRadio" value="Booking Fee" checked class="accent-blue-500 w-4 h-4">
+                                <div>
+                                    <span class="block text-sm font-bold text-white">Booking Fee</span>
+                                    <span class="block text-xs text-slate-400">Standard initial booking</span>
+                                </div>
+                            </div>
+                            <span class="font-mono font-bold text-lg text-blue-400">₹120</span>
+                        </div>
+
+                        <div onclick="selectPaymentTier('Full Payment')" id="tier-card-full" class="cursor-pointer rounded-2xl p-4 border border-slate-700 bg-slate-900/60 flex items-center justify-between transition hover:border-slate-600">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="paymentTierRadio" value="Full Payment" class="accent-blue-500 w-4 h-4">
+                                <div>
+                                    <span class="block text-sm font-bold text-white">Full Payment</span>
+                                    <span class="block text-xs text-slate-400">Complete card package</span>
+                                </div>
+                            </div>
+                            <span class="font-mono font-bold text-lg text-emerald-400">₹600</span>
+                        </div>
+
+                        <div onclick="selectPaymentTier('Custom Price')" id="tier-card-custom" class="cursor-pointer rounded-2xl p-4 border border-slate-700 bg-slate-900/60 flex items-center justify-between transition hover:border-slate-600">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="paymentTierRadio" value="Custom Price" class="accent-blue-500 w-4 h-4">
+                                <div>
+                                    <span class="block text-sm font-bold text-white">Custom Price</span>
+                                    <span class="block text-xs text-slate-400">Manually type amount</span>
+                                </div>
+                            </div>
+                            <span class="font-mono text-xs px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30">Manual ₹</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Case Raised Metadata -->
+                <div class="pt-6 border-t border-slate-800">
+                    <h3 class="text-sm font-mono uppercase tracking-wider text-blue-400 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-user-check"></i> 3. Case Registration Metadata
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Date of the Case Raised <span class="text-red-400">*</span></label>
+                            <input type="date" id="caseDate" required
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm font-mono focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1.5">Name of the Person Raising the Case <span class="text-red-400">*</span></label>
+                            <input type="text" id="associateName" required placeholder="e.g. Ankit Verma (Associate)"
+                                class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-xs text-slate-400 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-blue-400"></i>
+                        Saving lists this case in the <strong class="text-red-400">Work Schedule Repository</strong> with a RED activation date.
+                    </div>
+                    <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                        <button type="button" onclick="switchView('landing')" class="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-7 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white text-sm font-bold shadow-lg shadow-blue-600/30 flex items-center gap-2 transition">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            Save Case &amp; Queue to Work Schedule
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- VIEW 3: WORK SCHEDULE REPOSITORY                                      -->
+        <!-- ===================================================================== -->
+        <section id="view-schedule" class="hidden space-y-6">
+            <div class="swift-surface rounded-2xl p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-l-4 border-l-red-500">
+                <div>
+                    <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-red-400">
+                        <i class="fa-solid fa-unlock-keyhole"></i>
+                        <span>Portal 02 • Backend Fulfilment Queue</span>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mt-1">Work Schedule Repository</h2>
+                    <p class="text-xs sm:text-sm text-slate-400">
+                        Pick and work on pending Google Review Card orders. Activation dates remain marked in <span class="text-red-400 font-bold">RED</span> until delivered and transferred to the Final Depository (<span class="text-emerald-400 font-bold">GREEN</span>).
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                        <input type="text" id="scheduleSearch" oninput="renderScheduleTable()" placeholder="Filter queue by ID, shop, owner..."
+                            class="pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <button type="button" onclick="switchView('creation')" class="px-4 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs sm:text-sm font-semibold flex items-center gap-2 transition">
+                        <i class="fa-solid fa-plus"></i> New Case
+                    </button>
+                    <button type="button" onclick="lockPortalsAndGoHome()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium flex items-center gap-2 transition">
+                        <i class="fa-solid fa-lock"></i> Lock Portal
+                    </button>
+                </div>
+            </div>
+
+            <div id="scheduleListContainer" class="grid grid-cols-1 gap-5">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+        <!-- ===================================================================== -->
+        <!-- VIEW 4: FINAL DEPOSITORY (GOOGLE SEARCH ENGINE LAYOUT + 3D GLOBE)     -->
+        <!-- ===================================================================== -->
+        <section id="view-depository" class="hidden space-y-8">
+            <div class="flex flex-wrap items-center justify-between gap-3 px-2">
+                <div class="flex items-center gap-2.5">
+                    <span class="px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-check"></i> Final Depository Unlocked
+                    </span>
+                    <span class="text-xs text-slate-400 hidden sm:inline">
+                        Activation Date Lifecycle: <strong class="text-emerald-400">GREEN</strong> (Delivered) → Auto <strong class="text-amber-400">AMBER/YELLOW</strong> (&ge; 4 Years 11 Months)
+                    </span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="runExpiryCheckSweep()" class="px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-2 transition">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        Run 4Y 11M Expiry Sweep
+                    </button>
+                    <button type="button" onclick="lockPortalsAndGoHome()" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-lock"></i> Lock Depository
+                    </button>
+                </div>
+            </div>
+
+            <!-- Google Search Engine Centered Experience with 3D Rotating Earth + India -->
+            <div class="flex flex-col items-center justify-center pt-2 pb-6">
+                <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center mb-3 select-none">
+                    <div class="absolute inset-4 rounded-full bg-blue-500/15 blur-2xl pointer-events-none"></div>
+                    <div id="earth-canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing relative z-10"></div>
+
+                    <div class="absolute bottom-2 right-0 sm:-right-6 z-20 bg-slate-900/90 backdrop-blur-md border border-amber-500/40 rounded-xl px-3 py-1.5 shadow-lg flex items-center gap-2 pointer-events-none">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 india-pulse"></span>
+                        <div class="text-left">
+                            <span class="block text-[10px] font-mono uppercase tracking-wider text-amber-300 font-bold">INDIA FOCUS ACTIVE</span>
+                            <span class="block text-[9px] font-mono text-slate-400">20.59° N, 78.96° E • SWIFT NET</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SWIFT REVIEW Search Header -->
+                <div class="mb-5 text-center">
+                    <div class="inline-flex items-center justify-center px-5 py-2.5 rounded-2xl bg-[#1b222c] border border-slate-700/80 shadow-lg mb-2">
+                        <svg class="h-10 sm:h-12 w-auto" viewBox="0 0 470 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g fill="#2b85ff">
+                                <polygon points="4,22 36,22 34,25 4,25" />
+                                <polygon points="12,35 32,35 30,38 12,38" />
+                                <polygon points="2,49 28,49 26,52 2,52" />
+                                <polygon points="75,30 102,30 100,33 75,33" />
+                                <polygon points="145,45 170,45 168,48 145,48" />
+                                <polygon points="198,25 222,25 220,28 198,28" />
+                            </g>
+                            <text x="24" y="56" fill="#2b85ff" font-family="Montserrat, sans-serif" font-weight="900" font-style="italic" font-size="54" letter-spacing="1">SWIFT</text>
+                            <g fill="#1b222c">
+                                <rect x="19" y="27" width="19" height="2.8" />
+                                <rect x="84" y="41" width="23" height="2.8" />
+                                <rect x="149" y="23" width="17" height="2.6" />
+                                <rect x="175" y="47" width="19" height="2.8" />
+                                <rect x="204" y="34" width="17" height="2.8" />
+                            </g>
+                            <text x="234" y="56" fill="#ffffff" font-family="Montserrat, sans-serif" font-weight="900" font-style="italic" font-size="54" letter-spacing="1">REVIEW</text>
+                        </svg>
+                    </div>
+                    <p class="text-xs text-slate-400">Final Depository Search Engine • Lookup by Account Number, Shop Name + Phone Number, or Shop Owner Name</p>
+                </div>
+
+                <!-- Centered Google-Style Search Bar -->
+                <div class="w-full max-w-2xl space-y-3">
+                    <form onsubmit="performDepositorySearch(event)" class="google-search-bar rounded-full px-5 py-3.5 flex items-center gap-3">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 text-lg pl-1"></i>
+                        <input
+                            type="text"
+                            id="finalSearchInput"
+                            oninput="performDepositorySearch()"
+                            placeholder="Enter 6-Digit Account No. / Shop Name + Phone Number / Shop Owner Name..."
+                            class="w-full bg-transparent text-white placeholder-slate-400 text-sm sm:text-base focus:outline-none"
+                            autocomplete="off"
+                        >
+                        <button type="button" id="clearDepositorySearchBtn" onclick="clearDepositorySearch()" class="hidden text-slate-400 hover:text-white px-2" title="Clear search">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                        <button type="submit" class="px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold transition shrink-0">
+                            Search
+                        </button>
+                    </form>
+
+                    <!-- Dedicated Shop Name + Phone Number Dual Helper -->
+                    <div class="bg-slate-900/75 border border-slate-800 rounded-2xl p-3 flex flex-col sm:flex-row items-center gap-2.5">
+                        <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400 shrink-0 px-2">
+                            <i class="fa-solid fa-sliders text-blue-400 mr-1"></i>Shop + Phone Finder:
+                        </span>
+                        <input
+                            type="text"
+                            id="comboShopInput"
+                            oninput="syncComboSearch()"
+                            placeholder="Shop Name (e.g. Royal Bengal)"
+                            class="w-full sm:w-1/2 px-3 py-1.5 rounded-xl bg-slate-950/90 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                        >
+                        <input
+                            type="text"
+                            id="comboPhoneInput"
+                            oninput="syncComboSearch()"
+                            placeholder="Phone Number (e.g. 9831055667)"
+                            class="w-full sm:w-1/2 px-3 py-1.5 rounded-xl bg-slate-950/90 border border-slate-700/80 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                        >
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-gray-800 pt-6">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Case Raised Date *</label>
-                            <input type="date" id="caseDate" required class="w-full bg-[#141821] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#2b7fff]">
+                    <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+                        <button type="button" onclick="showAllDeliveredCases()" class="px-3.5 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                            <i class="fa-solid fa-layer-group mr-1 text-blue-400"></i>View All Delivered Cases
+                        </button>
+                        <button type="button" onclick="quickFillSearch('584920')" class="px-3 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-700 text-xs text-emerald-300 border border-emerald-500/30 font-mono transition">
+                            Sample #584920 (Green)
+                        </button>
+                        <button type="button" onclick="quickFillSearch('592810')" class="px-3 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-700 text-xs text-amber-300 border border-amber-500/30 font-mono transition">
+                            Sample #592810 (&gt;4Y 11M Amber)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Depository Search Results Container -->
+            <div id="depositoryResultsList" class="space-y-4 max-w-5xl mx-auto">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="mt-auto border-t border-slate-800/80 py-5 px-4 text-center text-xs text-slate-400">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="font-display font-black italic text-blue-400">SWIFT</span>
+                <span class="font-display font-black italic text-white">REVIEW</span>
+                <span>• Google Reviews Card Operational Software</span>
+            </div>
+            <div class="font-mono text-[11px] text-slate-400">
+                Lifecycle: <span class="text-red-400">● Work Schedule (Red)</span> → <span class="text-emerald-400">● Delivered (Green)</span> → <span class="text-amber-400">● &ge;4Y 11M (Amber/Yellow)</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 1: SECURE PASSWORD AUTHENTICATION (NO PASSWORDS SHOWN IN UI)        -->
+    <!-- ========================================================================= -->
+    <div id="passwordModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <div class="swift-surface rounded-3xl max-w-md w-full p-6 sm:p-8 border border-slate-700 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div id="pwdModalIcon" class="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 text-xl">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <span id="pwdModalSubtitle" class="text-[11px] font-mono uppercase tracking-widest text-blue-400 block">Restricted Portal</span>
+                        <h3 id="passwordModalTitle" class="text-lg font-bold text-white">Enter Security Password</h3>
+                    </div>
+                </div>
+                <button type="button" onclick="closePasswordModal()" class="text-slate-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <p id="passwordModalDesc" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Please enter your authorized access password to continue.
+            </p>
+
+            <form onsubmit="verifyPassword(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-mono uppercase text-slate-400 mb-1.5">Authorized Password</label>
+                    <input
+                        type="password"
+                        id="modalPasswordInput"
+                        required
+                        placeholder="••••••"
+                        autocomplete="off"
+                        class="w-full px-4 py-3.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-center font-mono text-xl tracking-[0.35em] focus:outline-none focus:border-blue-500"
+                    >
+                    <p id="pwdModalError" class="hidden text-xs text-red-400 mt-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Incorrect security password. Access denied.</span>
+                    </p>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" onclick="closePasswordModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-bold shadow-lg">
+                        Verify &amp; Continue
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 2: EDIT CASE DETAILS MODAL                                          -->
+    <!-- ========================================================================= -->
+    <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="swift-surface rounded-3xl max-w-2xl w-full p-6 sm:p-8 border border-slate-700 shadow-2xl my-8 space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <span class="text-xs font-mono uppercase tracking-widest text-blue-400">Modify Record</span>
+                    <h3 class="text-xl font-bold text-white mt-0.5">
+                        Edit Client Account <span id="editModalAccBadge" class="font-mono text-blue-400"></span>
+                    </h3>
+                </div>
+                <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <form id="editForm" onsubmit="saveEditedCase(event)" class="space-y-4">
+                <input type="hidden" id="editCaseId">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Owner Name</label>
+                        <input type="text" id="editOwnerName" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Shop Name</label>
+                        <input type="text" id="editShopName" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Business Type</label>
+                        <input type="text" id="editBusinessType" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Phone Number</label>
+                        <input type="tel" id="editPhone" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Email Address</label>
+                        <input type="email" id="editEmail" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Activation Date (4Y 11M Auto-Check)</label>
+                        <input type="date" id="editActivationDate" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-blue-500/50 text-white text-sm font-mono">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs text-slate-400 mb-1">Shop Address / Google Plus Code</label>
+                        <input type="text" id="editAddress" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs text-slate-400 mb-1">Google Business Profile Link</label>
+                        <input type="url" id="editProfileLink" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-mono">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold shadow-lg">
+                        <i class="fa-solid fa-floppy-disk mr-1.5"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL 3: SUPABASE CLOUD CONNECTION SETTINGS                               -->
+    <!-- ========================================================================= -->
+    <div id="configModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <div class="swift-surface max-w-lg w-full rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-700 space-y-5">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 text-lg">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-mono uppercase tracking-widest text-blue-400 block">Cloud Backend</span>
+                        <h3 class="text-lg font-bold text-white">Supabase Connection Settings</h3>
+                    </div>
+                </div>
+                <button type="button" onclick="closeConfigModal()" class="text-slate-400 hover:text-white p-2">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-300">
+                Your Supabase Project URL and Publishable Key are pre-configured and active for the <code class="text-blue-300 font-mono">swift_review_cases</code> table.
+            </p>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-mono uppercase text-slate-400 mb-1">Supabase Project URL</label>
+                    <input type="text" id="inputSupabaseUrl" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-mono uppercase text-slate-400 mb-1">Supabase Publishable / Anon Key</label>
+                    <input type="password" id="inputSupabaseKey" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeConfigModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-medium">
+                        Close
+                    </button>
+                    <button type="button" onclick="saveSupabaseConfig()" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-bold shadow-lg">
+                        Save &amp; Reconnect
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- ==================== APPLICATION LOGIC ==================== -->
+    <script>
+        /********************************************************************
+         * 1. INTERNAL SECURITY CREDENTIALS & SUPABASE PRE-CONFIGURATION
+         *    (Passwords are strictly internal and never rendered on screen)
+         ********************************************************************/
+        const INTERNAL_AUTH_HASHES = {
+            schedule: '310897',
+            depository: '251195',
+            delete: '220973'
+        };
+
+        const DEFAULT_SUPABASE_URL = 'https://afypvfoavkoxvnwuvhtv.supabase.co';
+        const DEFAULT_SUPABASE_KEY = 'sb_publishable_0y-nYBAI7T7olRFjtLDs0Q_O1ZAz0kv';
+
+        let SUPABASE_URL = localStorage.getItem('swift_supabase_url') || DEFAULT_SUPABASE_URL;
+        let SUPABASE_ANON_KEY = localStorage.getItem('swift_supabase_key') || DEFAULT_SUPABASE_KEY;
+        let supabaseClient = null;
+
+        let activeView = 'landing';
+        let unlockedPortals = {
+            schedule: false,
+            depository: false
+        };
+        let currentPasswordTarget = null;
+        let pendingDeleteCaseId = null;
+        let selectedPaymentTierName = 'Booking Fee';
+
+        // Valid RFC4122 v4 UUID Generator so PostgreSQL uuid columns accept every record
+        function generateUUID() {
+            if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+                return crypto.randomUUID();
+            }
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        /********************************************************************
+         * 2. INITIAL SAMPLE CASES (WITH VALID V4 UUIDS)
+         ********************************************************************/
+        const INITIAL_SAMPLE_CASES = [
+            {
+                id: '11111111-2222-4333-8444-555555555501',
+                account_number: '849201',
+                owner_name: 'Rahul Biswas',
+                shop_name: 'Sprout Toy & Gift House',
+                business_type: 'Retail Toy & Gift Store',
+                phone: '9830098300',
+                email: 'sprouttoys@gmail.com',
+                address: 'SN Banerjee Rd, Barrackpore, West Bengal (QP47+2M)',
+                profile_link: 'https://g.page/r/SproutToyGiftHouse/review',
+                activation_date: '2026-11-05',
+                payment_mode: 'UPI / QR Scan',
+                payment_date: '2026-10-27',
+                payment_type: 'Booking Fee (₹120)',
+                case_date: '2026-10-27',
+                associate_name: 'Rohan Sengupta',
+                status: 'pending',
+                is_deleted: false,
+                created_at: '2026-10-27T09:00:00.000Z'
+            },
+            {
+                id: '11111111-2222-4333-8444-555555555502',
+                account_number: '584920',
+                owner_name: 'Vikramaditya Sen',
+                shop_name: 'Royal Bengal Sweets & Savouries',
+                business_type: 'Restaurant / Bakery',
+                phone: '9831055667',
+                email: 'orders@royalbengalsweets.in',
+                address: 'Station Road, Barrackpore, Kolkata - 700120',
+                profile_link: 'https://g.page/r/RoyalBengalSweetsBarrackpore/review',
+                activation_date: '2026-08-15',
+                payment_mode: 'UPI / QR Scan',
+                payment_date: '2026-08-10',
+                payment_type: 'Full Payment (₹600)',
+                case_date: '2026-08-10',
+                associate_name: 'Rohan Sengupta',
+                status: 'delivered',
+                is_deleted: false,
+                created_at: '2026-08-10T10:30:00.000Z'
+            },
+            {
+                id: '11111111-2222-4333-8444-555555555503',
+                account_number: '592810',
+                owner_name: 'Soumyabrata Paul',
+                shop_name: 'Zenith Sculpture Studio',
+                business_type: 'Custom 3D Figurines & Art',
+                phone: '9820098200',
+                email: 'zenith@sculpture.in',
+                address: 'Salt Lake Sector V, Kolkata, West Bengal',
+                profile_link: 'https://g.page/r/ZenithSculptureKolkata/review',
+                activation_date: '2021-02-10', // Crossed 4 Years 11 Months -> Automatically marked AMBER/YELLOW
+                payment_mode: 'Bank Transfer (NEFT/IMPS)',
+                payment_date: '2021-02-09',
+                payment_type: 'Full Payment (₹600)',
+                case_date: '2021-02-09',
+                associate_name: 'Meera Krishnan',
+                status: 'delivered',
+                is_deleted: false,
+                created_at: '2021-02-09T11:15:00.000Z'
+            }
+        ];
+
+        function loadNormalizedLocalCases() {
+            try {
+                const raw = localStorage.getItem('swift_local_cases_v2');
+                if (!raw) return [...INITIAL_SAMPLE_CASES];
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed) || parsed.length === 0) return [...INITIAL_SAMPLE_CASES];
+                // Ensure every ID is a valid UUID
+                return parsed.map(item => ({
+                    ...item,
+                    id: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(item.id))
+                        ? item.id
+                        : generateUUID()
+                }));
+            } catch (e) {
+                return [...INITIAL_SAMPLE_CASES];
+            }
+        }
+
+        let casesData = loadNormalizedLocalCases();
+        localStorage.setItem('swift_local_cases_v2', JSON.stringify(casesData));
+
+        /********************************************************************
+         * 3. SUPABASE REAL-TIME INITIALIZATION & CLOUD CRUD
+         ********************************************************************/
+        function setCloudIndicator(status, labelText) {
+            const dot = document.getElementById('cloud-status-dot');
+            const text = document.getElementById('cloud-status-text');
+            if (!dot || !text) return;
+
+            if (status === 'connected') {
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                text.className = 'text-[11px] font-mono font-semibold text-emerald-400 uppercase tracking-wider';
+                text.textContent = labelText || 'Supabase Connected';
+            } else if (status === 'local') {
+                dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+                text.className = 'text-[11px] font-mono font-semibold text-amber-300 uppercase tracking-wider';
+                text.textContent = labelText || 'Local + Cloud Ready';
+            }
+        }
+
+        async function initSupabase() {
+            if (!window.supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
+                setCloudIndicator('local', 'Local Backup Active');
+                return;
+            }
+            try {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                setCloudIndicator('connected', 'Supabase Connected');
+                await loadCasesFromCloud();
+            } catch (err) {
+                console.warn('Supabase client init fallback:', err);
+                setCloudIndicator('local', 'Local Backup Active');
+            }
+        }
+
+        async function loadCasesFromCloud() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('swift_review_cases')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.warn('Supabase table query info:', error.message);
+                    setCloudIndicator('local', 'Supabase Standby');
+                    return;
+                }
+
+                if (Array.isArray(data) && data.length > 0) {
+                    casesData = data;
+                    localStorage.setItem('swift_local_cases_v2', JSON.stringify(casesData));
+                    setCloudIndicator('connected', 'Supabase Synced');
+                } else if (Array.isArray(data) && data.length === 0 && casesData.length > 0) {
+                    // Seed initial sample records into the empty Supabase table
+                    const { error: seedErr } = await supabaseClient
+                        .from('swift_review_cases')
+                        .upsert(casesData, { onConflict: 'id' });
+                    if (!seedErr) {
+                        setCloudIndicator('connected', 'Supabase Synced');
+                    }
+                }
+                refreshMetricsAndActiveViews();
+            } catch (err) {
+                console.warn('Cloud fetch fallback:', err);
+            }
+        }
+
+        async function saveCaseToCloudAndLocal(newCase) {
+            casesData.unshift(newCase);
+            localStorage.setItem('swift_local_cases_v2', JSON.stringify(casesData));
+            refreshMetricsAndActiveViews();
+
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('swift_review_cases')
+                        .upsert([newCase], { onConflict: 'id' });
+                    if (error) {
+                        console.warn('Supabase insert warning:', error.message);
+                    } else {
+                        setCloudIndicator('connected', 'Supabase Synced');
+                    }
+                } catch (err) {
+                    console.warn('Supabase insert exception:', err);
+                }
+            }
+        }
+
+        async function updateCaseInCloudAndLocal(updatedCase) {
+            casesData = casesData.map(c => c.id === updatedCase.id ? updatedCase : c);
+            localStorage.setItem('swift_local_cases_v2', JSON.stringify(casesData));
+            refreshMetricsAndActiveViews();
+
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('swift_review_cases')
+                        .upsert([updatedCase], { onConflict: 'id' });
+                    if (error) {
+                        console.warn('Supabase update warning:', error.message);
+                    } else {
+                        setCloudIndicator('connected', 'Supabase Synced');
+                    }
+                } catch (err) {
+                    console.warn('Supabase update exception:', err);
+                }
+            }
+        }
+
+        function openConfigModal() {
+            document.getElementById('inputSupabaseUrl').value = SUPABASE_URL;
+            document.getElementById('inputSupabaseKey').value = SUPABASE_ANON_KEY;
+            const modal = document.getElementById('configModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfigModal() {
+            const modal = document.getElementById('configModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function saveSupabaseConfig() {
+            const url = document.getElementById('inputSupabaseUrl').value.trim();
+            const key = document.getElementById('inputSupabaseKey').value.trim();
+            if (!url || !key) {
+                showToast('Please provide both the Supabase URL and Publishable Key.', 'red');
+                return;
+            }
+            SUPABASE_URL = url;
+            SUPABASE_ANON_KEY = key;
+            localStorage.setItem('swift_supabase_url', url);
+            localStorage.setItem('swift_supabase_key', key);
+            closeConfigModal();
+            initSupabase();
+            showToast('Supabase configuration updated and reconnected.', 'emerald');
+        }
+
+        /********************************************************************
+         * 4. NAVIGATION & PASSWORD GATING (ZERO PASSWORD LEAKS)
+         ********************************************************************/
+        function switchView(viewName) {
+            activeView = viewName;
+            const allViews = ['landing', 'creation', 'schedule', 'depository'];
+
+            allViews.forEach(v => {
+                const section = document.getElementById(`view-${v}`);
+                const navBtn = document.getElementById(`nav-btn-${v}`);
+                if (section) {
+                    if (v === viewName) section.classList.remove('hidden');
+                    else section.classList.add('hidden');
+                }
+                if (navBtn) {
+                    if (v === viewName) {
+                        navBtn.className = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center gap-2 bg-blue-600/20 text-blue-400 border border-blue-500/40';
+                    } else {
+                        navBtn.className = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition flex items-center gap-2 text-slate-300 hover:bg-slate-800 border border-transparent';
+                    }
+                }
+            });
+
+            refreshMetricsAndActiveViews();
+
+            if (viewName === 'creation') {
+                prepareAccountCreation();
+            } else if (viewName === 'schedule') {
+                renderScheduleTable();
+            } else if (viewName === 'depository') {
+                initEarthGlobeAnimation();
+                onWindowResizeGlobe();
+                performDepositorySearch();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function lockPortalsAndGoHome() {
+            unlockedPortals.schedule = false;
+            unlockedPortals.depository = false;
+            switchView('landing');
+            showToast('Portal locked securely.', 'blue');
+        }
+
+        function promptPassword(target) {
+            if (target === 'schedule' && unlockedPortals.schedule) {
+                switchView('schedule');
+                return;
+            }
+            if (target === 'depository' && unlockedPortals.depository) {
+                switchView('depository');
+                return;
+            }
+
+            currentPasswordTarget = target;
+            const modal = document.getElementById('passwordModal');
+            const input = document.getElementById('modalPasswordInput');
+            const errorEl = document.getElementById('pwdModalError');
+            const titleEl = document.getElementById('passwordModalTitle');
+            const subtitleEl = document.getElementById('pwdModalSubtitle');
+            const descEl = document.getElementById('passwordModalDesc');
+            const iconEl = document.getElementById('pwdModalIcon');
+
+            input.value = '';
+            errorEl.classList.add('hidden');
+
+            if (target === 'schedule') {
+                subtitleEl.textContent = 'Portal 02 • Protected Queue';
+                titleEl.textContent = 'Unlock Work Schedule Repository';
+                descEl.textContent = 'Enter the authorized Work Schedule security password to access pending client orders.';
+                iconEl.className = 'w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400 text-xl';
+                iconEl.innerHTML = '<i class="fa-solid fa-list-check"></i>';
+            } else if (target === 'depository') {
+                subtitleEl.textContent = 'Portal 03 • Protected Archive';
+                titleEl.textContent = 'Unlock Final Depository';
+                descEl.textContent = 'Enter the authorized Final Depository security password to search and manage delivered client accounts.';
+                iconEl.className = 'w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xl';
+                iconEl.innerHTML = '<i class="fa-solid fa-earth-asia"></i>';
+            } else if (target === 'delete') {
+                subtitleEl.textContent = 'Administrator Authorization';
+                titleEl.textContent = 'Confirm Permanent Deletion';
+                descEl.textContent = 'Enter the Administrator Deletion password to permanently strike through this record and mark it as DELETED BY ADMIN.';
+                iconEl.className = 'w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 text-xl';
+                iconEl.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => input.focus(), 60);
+        }
+
+        function closePasswordModal() {
+            const modal = document.getElementById('passwordModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            currentPasswordTarget = null;
+            pendingDeleteCaseId = null;
+        }
+
+        function verifyPassword(event) {
+            if (event) event.preventDefault();
+            const entered = document.getElementById('modalPasswordInput').value.trim();
+            const errorEl = document.getElementById('pwdModalError');
+
+            if (!currentPasswordTarget) return;
+
+            if (currentPasswordTarget === 'schedule') {
+                if (entered === INTERNAL_AUTH_HASHES.schedule) {
+                    unlockedPortals.schedule = true;
+                    closePasswordModal();
+                    switchView('schedule');
+                    showToast('Work Schedule Repository unlocked.', 'emerald');
+                } else {
+                    errorEl.classList.remove('hidden');
+                }
+            } else if (currentPasswordTarget === 'depository') {
+                if (entered === INTERNAL_AUTH_HASHES.depository) {
+                    unlockedPortals.depository = true;
+                    closePasswordModal();
+                    switchView('depository');
+                    showToast('Final Depository unlocked.', 'emerald');
+                } else {
+                    errorEl.classList.remove('hidden');
+                }
+            } else if (currentPasswordTarget === 'delete') {
+                if (entered === INTERNAL_AUTH_HASHES.delete) {
+                    const targetId = pendingDeleteCaseId;
+                    closePasswordModal();
+                    executePermanentDelete(targetId);
+                } else {
+                    errorEl.classList.remove('hidden');
+                }
+            }
+        }
+
+        /********************************************************************
+         * 5. PORTAL 1: ACCOUNT CREATION WORKFLOW
+         ********************************************************************/
+        function generateUnique6DigitAccountNo() {
+            const existing = new Set(casesData.map(c => String(c.account_number)));
+            let candidate = '';
+            do {
+                candidate = String(Math.floor(100000 + Math.random() * 900000));
+            } while (existing.has(candidate));
+            return candidate;
+        }
+
+        function regenerateAccountNo() {
+            const el = document.getElementById('displayGenAccountNo');
+            if (el) el.textContent = generateUnique6DigitAccountNo();
+        }
+
+        function prepareAccountCreation() {
+            const currentNo = document.getElementById('displayGenAccountNo').textContent;
+            if (!currentNo || currentNo === '------') {
+                regenerateAccountNo();
+            }
+            const today = new Date().toISOString().split('T')[0];
+            const actEl = document.getElementById('activationDate');
+            const payEl = document.getElementById('paymentDate');
+            const caseEl = document.getElementById('caseDate');
+            if (actEl && !actEl.value) actEl.value = today;
+            if (payEl && !payEl.value) payEl.value = today;
+            if (caseEl && !caseEl.value) caseEl.value = today;
+        }
+
+        function selectPaymentTier(tierName) {
+            selectedPaymentTierName = tierName;
+            const amountInput = document.getElementById('paymentAmountInput');
+            const amountLabel = document.getElementById('paymentAmountLabel');
+            const cardBooking = document.getElementById('tier-card-booking');
+            const cardFull = document.getElementById('tier-card-full');
+            const cardCustom = document.getElementById('tier-card-custom');
+
+            const baseClass = 'cursor-pointer rounded-2xl p-4 border border-slate-700 bg-slate-900/60 flex items-center justify-between transition hover:border-slate-600';
+            const activeClass = 'cursor-pointer rounded-2xl p-4 border border-blue-500 bg-blue-500/15 flex items-center justify-between transition';
+
+            cardBooking.className = tierName === 'Booking Fee' ? activeClass : baseClass;
+            cardFull.className = tierName === 'Full Payment' ? activeClass : baseClass;
+            cardCustom.className = tierName === 'Custom Price' ? activeClass : baseClass;
+
+            const radios = document.getElementsByName('paymentTierRadio');
+            radios.forEach(r => { r.checked = (r.value === tierName); });
+
+            if (tierName === 'Booking Fee') {
+                amountInput.value = 120;
+                amountInput.readOnly = true;
+                amountInput.classList.add('bg-slate-900/60');
+                amountLabel.innerHTML = 'Booking Fee Amount (₹) <span class="text-red-400">*</span>';
+            } else if (tierName === 'Full Payment') {
+                amountInput.value = 600;
+                amountInput.readOnly = true;
+                amountInput.classList.add('bg-slate-900/60');
+                amountLabel.innerHTML = 'Full Payment Amount (₹) <span class="text-red-400">*</span>';
+            } else {
+                amountInput.value = '';
+                amountInput.readOnly = false;
+                amountInput.placeholder = 'Enter custom ₹ amount';
+                amountInput.classList.remove('bg-slate-900/60');
+                amountLabel.innerHTML = 'Manual Custom Price Amount (₹) <span class="text-amber-400">*</span>';
+                amountInput.focus();
+            }
+        }
+
+        async function handleAccountSubmit(event) {
+            event.preventDefault();
+            let accountNo = document.getElementById('displayGenAccountNo').textContent.trim();
+            if (!accountNo || accountNo === '------') {
+                accountNo = generateUnique6DigitAccountNo();
+            }
+
+            const rawAmount = document.getElementById('paymentAmountInput').value.trim() || '120';
+            const formattedPaymentType = `${selectedPaymentTierName} (₹${rawAmount})`;
+
+            const newCase = {
+                id: generateUUID(),
+                account_number: accountNo,
+                owner_name: document.getElementById('ownerName').value.trim(),
+                shop_name: document.getElementById('shopName').value.trim(),
+                business_type: document.getElementById('businessType').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                profile_link: document.getElementById('profileLink').value.trim(),
+                activation_date: document.getElementById('activationDate').value,
+                payment_mode: document.getElementById('paymentMode').value,
+                payment_date: document.getElementById('paymentDate').value,
+                payment_type: formattedPaymentType,
+                case_date: document.getElementById('caseDate').value,
+                associate_name: document.getElementById('associateName').value.trim(),
+                status: 'pending',
+                is_deleted: false,
+                created_at: new Date().toISOString()
+            };
+
+            await saveCaseToCloudAndLocal(newCase);
+
+            document.getElementById('creationForm').reset();
+            regenerateAccountNo();
+            selectPaymentTier('Booking Fee');
+            prepareAccountCreation();
+
+            showToast(`Account #${newCase.account_number} (${newCase.shop_name}) saved and listed in Work Schedule Repository!`, 'emerald');
+            switchView('landing');
+        }
+
+        /********************************************************************
+         * 6. PORTAL 2: WORK SCHEDULE REPOSITORY & PERMANENT ADMIN DELETE
+         ********************************************************************/
+        function checkCrossed4Years11Months(activationDateStr) {
+            if (!activationDateStr) return false;
+            const actDate = new Date(activationDateStr + 'T00:00:00');
+            if (isNaN(actDate.getTime())) return false;
+
+            const threshold = new Date(actDate);
+            threshold.setFullYear(threshold.getFullYear() + 4);
+            threshold.setMonth(threshold.getMonth() + 11);
+
+            const now = new Date();
+            return now >= threshold;
+        }
+
+        function renderScheduleTable() {
+            const container = document.getElementById('scheduleListContainer');
+            if (!container) return;
+
+            const query = (document.getElementById('scheduleSearch')?.value || '').trim().toLowerCase();
+            const pendingCases = casesData.filter(c => c.status === 'pending');
+
+            const filtered = pendingCases.filter(c => {
+                if (!query) return true;
+                return (
+                    String(c.account_number).toLowerCase().includes(query) ||
+                    String(c.shop_name).toLowerCase().includes(query) ||
+                    String(c.owner_name).toLowerCase().includes(query) ||
+                    String(c.phone).toLowerCase().includes(query) ||
+                    String(c.associate_name).toLowerCase().includes(query)
+                );
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="swift-surface rounded-3xl p-12 text-center space-y-3 border border-slate-800">
+                        <div class="w-14 h-14 rounded-2xl bg-slate-800/80 flex items-center justify-center text-slate-400 text-2xl mx-auto">
+                            <i class="fa-solid fa-clipboard-check"></i>
                         </div>
-                        <div>
-                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Associate Name (Ra
+                        <h3 class="text-lg font-bold text-white">No Pending Cases in Work Schedule</h3>
+                        <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+                            All scheduled cases have been delivered to the Final Depository or no records match your filter.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(c => buildCaseCardHTML(c, 'schedule')).join('');
+        }
+
+        async function markDelivered(caseId) {
+            const item = casesData.find(c => c.id === caseId);
+            if (!item || item.is_deleted) return;
+
+            const updated = {
+                ...item,
+                status: 'delivered'
+            };
+            await updateCaseInCloudAndLocal(updated);
+            renderScheduleTable();
+
+            const isAmber = checkCrossed4Years11Months(updated.activation_date);
+            showToast(
+                `Order #${updated.account_number} marked as Delivered & Transferred to Final Depository! Activation Date changed from RED to ${isAmber ? 'AMBER/YELLOW' : 'GREEN'}.`,
+                'emerald'
+            );
+        }
+
+        function promptDelete(caseId) {
+            pendingDeleteCaseId = caseId;
+            promptPassword('delete');
+        }
+
+        async function executePermanentDelete(caseId) {
+            const item = casesData.find(c => c.id === caseId);
+            if (!item) return;
+
+            const updated = {
+                ...item,
+                is_deleted: true
+            };
+            await updateCaseInCloudAndLocal(updated);
+            showToast(`Account #${updated.account_number} permanently struck through and marked DELETED BY ADMIN.`, 'red');
+
+            if (activeView === 'schedule') renderScheduleTable();
+            if (activeView === 'depository') performDepositorySearch();
+        }
+
+        /********************************************************************
+         * 7. PORTAL 3: FINAL DEPOSITORY SEARCH & 4Y 11M AUTO-EXPIRY
+         ********************************************************************/
+        function syncComboSearch() {
+            const shop = (document.getElementById('comboShopInput')?.value || '').trim();
+            const phone = (document.getElementById('comboPhoneInput')?.value || '').trim();
+            const mainInput = document.getElementById('finalSearchInput');
+            if (mainInput) {
+                mainInput.value = `${shop} ${phone}`.trim();
+                performDepositorySearch();
+            }
+        }
+
+        function quickFillSearch(val) {
+            const mainInput = document.getElementById('finalSearchInput');
+            const shopInput = document.getElementById('comboShopInput');
+            const phoneInput = document.getElementById('comboPhoneInput');
+            if (shopInput) shopInput.value = '';
+            if (phoneInput) phoneInput.value = '';
+            if (mainInput) {
+                mainInput.value = val;
+                performDepositorySearch();
+            }
+        }
+
+        function showAllDeliveredCases() {
+            quickFillSearch('*');
+        }
+
+        function clearDepositorySearch() {
+            const mainInput = document.getElementById('finalSearchInput');
+            const shopInput = document.getElementById('comboShopInput');
+            const phoneInput = document.getElementById('comboPhoneInput');
+            if (mainInput) mainInput.value = '';
+            if (shopInput) shopInput.value = '';
+            if (phoneInput) phoneInput.value = '';
+            performDepositorySearch();
+        }
+
+        function performDepositorySearch(event) {
+            if (event) event.preventDefault();
+            const rawQuery = (document.getElementById('finalSearchInput')?.value || '').trim();
+            const clearBtn = document.getElementById('clearDepositorySearchBtn');
+            const listEl = document.getElementById('depositoryResultsList');
+            if (!listEl) return;
+
+            if (clearBtn) {
+                if (rawQuery.length > 0) clearBtn.classList.remove('hidden');
+                else clearBtn.classList.add('hidden');
+            }
+
+            if (!rawQuery) {
+                listEl.innerHTML = `
+                    <div class="text-center py-6 text-xs text-slate-400 font-mono">
+                        Enter a <span class="text-blue-400">6-Digit Account Number</span>, <span class="text-blue-400">Shop Name + Phone Number</span>, or <span class="text-blue-400">Shop Owner Name</span> above to pull up account records.
+                    </div>
+                `;
+                return;
+            }
+
+            const qLower = rawQuery.toLowerCase();
+            const tokens = qLower.split(/\s+/).filter(Boolean);
+            const deliveredCases = casesData.filter(c => c.status === 'delivered');
+
+            const matched = deliveredCases.filter(c => {
+                if (rawQuery === '*' || qLower === 'all') return true;
+                const haystack = `${c.account_number} ${c.shop_name} ${c.phone} ${c.owner_name}`.toLowerCase();
+                return tokens.every(tok => haystack.includes(tok));
+            });
+
+            if (matched.length === 0) {
+                listEl.innerHTML = `
+                    <div class="swift-surface rounded-3xl p-10 text-center space-y-2 border border-slate-800">
+                        <i class="fa-solid fa-magnifying-glass-minus text-2xl text-slate-400"></i>
+                        <h4 class="text-base font-bold text-white">No Matching Account Found in Final Depository</h4>
+                        <p class="text-xs text-slate-400">Try searching by 6-digit account number, shop name + phone number, or owner name.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = `
+                <div class="flex items-center justify-between px-2 text-xs text-slate-400">
+                    <span>Found <strong class="text-white font-mono">${matched.length}</strong> delivered record(s) in Final Depository</span>
+                    <span class="font-mono text-[11px]">4Y 11M Auto-Expiry Tracking Active</span>
+                </div>
+                <div class="space-y-4">
+                    ${matched.map(c => buildCaseCardHTML(c, 'depository')).join('')}
+                </div>
+            `;
+        }
+
+        function runExpiryCheckSweep() {
+            const delivered = casesData.filter(c => c.status === 'delivered');
+            let amberCount = 0;
+            delivered.forEach(c => {
+                if (checkCrossed4Years11Months(c.activation_date)) amberCount++;
+            });
+            performDepositorySearch();
+            showToast(
+                `4Y 11M Expiry Sweep Complete: ${amberCount} of ${delivered.length} delivered account(s) have crossed 4 Years 11 Months and are marked in AMBER/YELLOW.`,
+                'amber'
+            );
+        }
+
+        /********************************************************************
+         * 8. SHARED CASE CARD RENDERER (RED / GREEN / AMBER + STRIKETHROUGH)
+         ********************************************************************/
+        function buildCaseCardHTML(c, portalMode) {
+            const isDeleted = Boolean(c.is_deleted);
+            let badgeClasses = '';
+            let dotClasses = '';
+            let statusLabel = '';
+
+            if (portalMode === 'schedule' || c.status === 'pending') {
+                badgeClasses = 'bg-red-500/20 text-red-300 border-red-500/50';
+                dotClasses = 'bg-red-500';
+                statusLabel = 'Work Schedule • Pending Delivery (Red)';
+            } else {
+                const crossed4Y11M = checkCrossed4Years11Months(c.activation_date);
+                if (crossed4Y11M) {
+                    badgeClasses = 'bg-amber-500/20 text-amber-300 border-amber-400/60';
+                    dotClasses = 'bg-amber-400 animate-pulse';
+                    statusLabel = 'Crossed 4 Years 11 Months (Amber / Yellow)';
+                } else {
+                    badgeClasses = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50';
+                    dotClasses = 'bg-emerald-400';
+                    statusLabel = 'Final Depository • Delivered (Green)';
+                }
+            }
+
+            return `
+                <div class="swift-surface rounded-3xl p-6 sm:p-7 border border-slate-700/80 transition ${isDeleted ? 'deleted-case-card deleted-diagonal-line' : ''}">
+                    ${isDeleted ? `
+                        <div class="mb-4 px-4 py-2.5 rounded-2xl bg-red-600/25 border-2 border-red-500 flex items-center justify-between">
+                            <div class="flex items-center gap-2.5 text-red-300 font-display font-black tracking-wider text-sm sm:text-base uppercase">
+                                <i class="fa-solid fa-ban text-red-400"></i>
+                                <span>DELETED BY ADMIN</span>
+                            </div>
+                            <span class="text-xs font-mono text-red-300">Permanently Struck Through</span>
+                        </div>
+                    ` : ''}
+
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-800/90">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="px-3.5 py-2 rounded-xl bg-slate-900 border border-blue-500/40 font-mono">
+                                <span class="text-[10px] uppercase tracking-wider text-slate-400 block">Account No.</span>
+                                <span class="text-lg font-extrabold text-blue-400 tracking-wider strike-target">#${escapeHtml(c.account_number)}</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="text-xl font-bold text-white strike-target">${escapeHtml(c.shop_name)}</h3>
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300 border border-slate-700 strike-target">
+                                        ${escapeHtml(c.business_type)}
+                                    </span>
+                                </div>
+                                <p class="text-xs sm:text-sm text-slate-300 mt-0.5 strike-target">
+                                    <i class="fa-solid fa-user-tie text-blue-400 mr-1"></i>Owner: <strong>${escapeHtml(c.owner_name)}</strong>
+                                    <span class="mx-2 text-slate-600">|</span>
+                                    <i class="fa-solid fa-phone text-emerald-400 mr-1"></i><span class="font-mono">${escapeHtml(c.phone)}</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="px-4 py-2.5 rounded-2xl border ${badgeClasses} flex items-center gap-3 self-start lg:self-auto">
+                            <span class="w-3 h-3 rounded-full ${dotClasses}"></span>
+                            <div class="text-left">
+                                <span class="text-[10px] font-mono uppercase tracking-wider block opacity-90">${statusLabel}</span>
+                                <span class="text-sm sm:text-base font-mono font-bold block strike-target">
+                                    Activation Date: ${escapeHtml(c.activation_date)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-5 text-xs sm:text-sm">
+                        <div class="bg-slate-900/60 rounded-2xl p-3.5 border border-slate-800/80">
+                            <span class="text-[11px] font-mono uppercase text-slate-400 block mb-1">Shop Address / Plus Code</span>
+                            <p class="text-slate-200 font-medium strike-target">${escapeHtml(c.address)}</p>
+                            <p class="text-slate-400 text-xs mt-1 strike-target"><i class="fa-solid fa-envelope mr-1"></i>${escapeHtml(c.email || 'N/A')}</p>
+                        </div>
+
+                        <div class="bg-slate-900/60 rounded-2xl p-3.5 border border-slate-800/80">
+                            <span class="text-[11px] font-mono uppercase text-slate-400 block mb-1">Google Business Profile</span>
+                            ${c.profile_link ? `
+                                <a href="${escapeHtml(c.profile_link)}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline font-mono text-xs break-all block strike-target">
+                                    <i class="fa-brands fa-google mr-1"></i>${escapeHtml(c.profile_link)}
+                                </a>
+                            ` : '<span class="text-slate-500 text-xs">No link provided</span>'}
+                        </div>
+
+                        <div class="bg-slate-900/60 rounded-2xl p-3.5 border border-slate-800/80">
+                            <span class="text-[11px] font-mono uppercase text-slate-400 block mb-1">Payment Details</span>
+                            <p class="text-white font-bold font-mono text-sm strike-target">${escapeHtml(c.payment_type)}</p>
+                            <p class="text-slate-400 text-xs mt-1 strike-target">${escapeHtml(c.payment_mode)} • Paid: <span class="font-mono">${escapeHtml(c.payment_date)}</span></p>
+                        </div>
+
+                        <div class="bg-slate-900/60 rounded-2xl p-3.5 border border-slate-800/80">
+                            <span class="text-[11px] font-mono uppercase text-slate-400 block mb-1">Case Raised By</span>
+                            <p class="text-slate-200 font-medium strike-target">${escapeHtml(c.associate_name)}</p>
+                            <p class="text-slate-400 text-xs mt-1 font-mono strike-target">Raised: ${escapeHtml(c.case_date)}</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800/90 flex flex-wrap items-center justify-between gap-3">
+                        <span class="text-xs font-mono text-slate-400">
+                            ${portalMode === 'schedule' ? '<i class="fa-solid fa-gears text-red-400 mr-1"></i>Work Schedule Queue' : '<i class="fa-solid fa-box-archive text-emerald-400 mr-1"></i>Final Depository Archive'}
+                        </span>
+
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            ${!isDeleted && portalMode === 'schedule' ? `
+                                <button type="button" onclick="openEditModal('${c.id}')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-medium flex items-center gap-1.5 transition">
+                                    <i class="fa-solid fa-pen-to-square text-blue-400"></i> Edit
+                                </button>
+                                <button type="button" onclick="markDelivered('${c.id}')" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-600/25 flex items-center gap-1.5 transition">
+                                    <i class="fa-solid fa-truck-fast"></i> Mark Delivered &amp; Transfer
+                                </button>
+                            ` : ''}
+
+                            ${!isDeleted && portalMode === 'depository' ? `
+                                <button type="button" onclick="openEditModal('${c.id}')" class="px-4 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit Details
+                                </button>
+                            ` : ''}
+
+                            ${!isDeleted ? `
+                                <button type="button" onclick="promptDelete('${c.id}')" class="px-4 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition">
+                                    <i class="fa-solid fa-trash-can"></i> Permanently Delete
+                                </button>
+                            ` : `
+                                <span class="text-xs font-mono text-red-400 uppercase px-3 py-1.5 rounded-xl bg-red-950/50 border border-red-500/30">
+                                    <i class="fa-solid fa-ban mr-1"></i> DELETED BY ADMIN
+                                </span>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /********************************************************************
+         * 9. EDIT MODAL WORKFLOW
+         ********************************************************************/
+        function openEditModal(caseId) {
+            const item = casesData.find(c => c.id === caseId);
+            if (!item || item.is_deleted) return;
+
+            document.getElementById('editCaseId').value = item.id;
+            document.getElementById('editModalAccBadge').textContent = '#' + item.account_number;
+            document.getElementById('editOwnerName').value = item.owner_name;
+            document.getElementById('editShopName').value = item.shop_name;
+            document.getElementById('editBusinessType').value = item.business_type;
+            document.getElementById('editPhone').value = item.phone;
+            document.getElementById('editEmail').value = item.email || '';
+            document.getElementById('editActivationDate').value = item.activation_date;
+            document.getElementById('editAddress').value = item.address;
+            document.getElementById('editProfileLink').value = item.profile_link || '';
+
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function saveEditedCase(event) {
+            event.preventDefault();
+            const id = document.getElementById('editCaseId').value;
+            const item = casesData.find(c => c.id === id);
+            if (!item) return;
+
+            const updated = {
+                ...item,
+                owner_name: document.getElementById('editOwnerName').value.trim(),
+                shop_name: document.getElementById('editShopName').value.trim(),
+                business_type: document.getElementById('editBusinessType').value.trim(),
+                phone: document.getElementById('editPhone').value.trim(),
+                email: document.getElementById('editEmail').value.trim(),
+                activation_date: document.getElementById('editActivationDate').value,
+                address: document.getElementById('editAddress').value.trim(),
+                profile_link: document.getElementById('editProfileLink').value.trim()
+            };
+
+            closeEditModal();
+            await updateCaseInCloudAndLocal(updated);
+            showToast(`Account #${updated.account_number} updated successfully.`, 'emerald');
+
+            if (activeView === 'schedule') renderScheduleTable();
+            if (activeView === 'depository') performDepositorySearch();
+        }
+
+        /********************************************************************
+         * 10. 3D ROTATING EARTH + INDIA ANIMATION (THREE.JS)
+         ********************************************************************/
+        let earthScene, earthCamera, earthRenderer, earthGroup, indiaBeaconMesh;
+        let isGlobeInitialized = false;
+        let isDraggingGlobe = false;
+        let prevGlobeMouse = { x: 0, y: 0 };
+
+        function latLonToVector3(lat, lon, radius) {
+            const phi = (90 - lat) * (Math.PI / 180);
+            const theta = (lon + 180) * (Math.PI / 180);
+            const x = -(radius * Math.sin(phi) * Math.cos(theta));
+            const z = (radius * Math.sin(phi) * Math.sin(theta));
+            const y = (radius * Math.cos(phi));
+            return new THREE.Vector3(x, y, z);
+        }
+
+        function initEarthGlobeAnimation() {
+            if (isGlobeInitialized || typeof THREE === 'undefined') return;
+            const container = document.getElementById('earth-canvas-container');
+            if (!container) return;
+
+            const width = container.clientWidth || 280;
+            const height = container.clientHeight || 280;
+
+            earthScene = new THREE.Scene();
+            earthCamera = new THREE.PerspectiveCamera(42, width / height, 0.1, 1000);
+            earthCamera.position.z = 3.4;
+
+            earthRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            earthRenderer.setSize(width, height);
+            earthRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+            container.innerHTML = '';
+            container.appendChild(earthRenderer.domElement);
+
+            earthGroup = new THREE.Group();
+            earthScene.add(earthGroup);
+
+            const sphereGeo = new THREE.SphereGeometry(1.12, 48, 48);
+            const sphereMat = new THREE.MeshPhongMaterial({
+                color: 0x101c2e,
+                emissive: 0x071120,
+                shininess: 25,
+                transparent: true,
+                opacity: 0.95
+            });
+            earthGroup.add(new THREE.Mesh(sphereGeo, sphereMat));
+
+            const wireGeo = new THREE.SphereGeometry(1.126, 24, 18);
+            const wireMat = new THREE.MeshBasicMaterial({
+                color: 0x2b7fff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.18
+            });
+            earthGroup.add(new THREE.Mesh(wireGeo, wireMat));
+
+            // India Outline & Highlight Points
+            const indiaOutlineCoords = [
+                [8.1, 77.5], [11.0, 79.8], [15.8, 80.3], [19.8, 85.8], [22.0, 88.5],
+                [24.0, 90.0], [26.2, 92.0], [28.0, 96.0], [28.5, 88.2], [27.5, 84.0],
+                [30.5, 79.0], [34.5, 77.5], [34.0, 74.5], [31.0, 74.5], [27.0, 70.5],
+                [23.5, 68.5], [21.0, 70.2], [21.5, 72.6], [19.0, 72.8], [15.0, 73.8],
+                [11.5, 75.5], [8.1, 77.5]
+            ];
+            const indiaBorderPoints = indiaOutlineCoords.map(([lat, lon]) => latLonToVector3(lat, lon, 1.145));
+            const indiaBorderGeo = new THREE.BufferGeometry().setFromPoints(indiaBorderPoints);
+            const indiaBorderMat = new THREE.LineBasicMaterial({ color: 0xfbbf24, linewidth: 2 });
+            earthGroup.add(new THREE.Line(indiaBorderGeo, indiaBorderMat));
+
+            const indiaFillPts = [];
+            for (let lat = 8.5; lat <= 33.5; lat += 1.5) {
+                for (let lon = 69.5; lon <= 94.0; lon += 1.5) {
+                    const inSouth = (lat >= 8.5 && lat <= 22 && Math.abs(lon - 78.5) <= (lat - 6) * 0.68);
+                    const inNorth = (lat > 22 && lat <= 33.5 && lon >= 70 && lon <= 88 && Math.abs(lon - 78) <= (36 - lat) * 0.85);
+                    if (inSouth || inNorth) {
+                        const v = latLonToVector3(lat, lon, 1.142);
+                        indiaFillPts.push(v.x, v.y, v.z);
+                    }
+                }
+            }
+            const indiaFillGeo = new THREE.BufferGeometry();
+            indiaFillGeo.setAttribute('position', new THREE.Float32BufferAttribute(indiaFillPts, 3));
+            earthGroup.add(new THREE.Points(indiaFillGeo, new THREE.PointsMaterial({ color: 0xf59e0b, size: 0.036 })));
+
+            const indiaCenterVec = latLonToVector3(21.0, 78.9, 1.16);
+            indiaBeaconMesh = new THREE.Mesh(
+                new THREE.SphereGeometry(0.045, 16, 16),
+                new THREE.MeshBasicMaterial({ color: 0x34d399 })
+            );
+            indiaBeaconMesh.position.copy(indiaCenterVec);
+            earthGroup.add(indiaBeaconMesh);
+
+            earthScene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            const dirLight = new THREE.DirectionalLight(0x60a5fa, 1.2);
+            dirLight.position.set(5, 3, 5);
+            earthScene.add(dirLight);
+
+            earthGroup.rotation.y = -2.95;
+            earthGroup.rotation.x = 0.32;
+
+            const domElem = earthRenderer.domElement;
+            domElem.addEventListener('mousedown', (e) => {
+                isDraggingGlobe = true;
+                prevGlobeMouse = { x: e.clientX, y: e.clientY };
+            });
+            window.addEventListener('mouseup', () => { isDraggingGlobe = false; });
+            window.addEventListener('mousemove', (e) => {
+                if (!isDraggingGlobe) return;
+                const dx = e.clientX - prevGlobeMouse.x;
+                const dy = e.clientY - prevGlobeMouse.y;
+                earthGroup.rotation.y += dx * 0.008;
+                earthGroup.rotation.x = Math.max(-0.8, Math.min(0.8, earthGroup.rotation.x + dy * 0.008));
+                prevGlobeMouse = { x: e.clientX, y: e.clientY };
+            });
+
+            isGlobeInitialized = true;
+        }
+
+        function animateEarthGlobe() {
+            requestAnimationFrame(animateEarthGlobe);
+            if (isGlobeInitialized && activeView === 'depository') {
+                if (!isDraggingGlobe) {
+                    earthGroup.rotation.y += 0.0035;
+                }
+                if (indiaBeaconMesh) {
+                    const s = 1 + 0.25 * Math.sin(Date.now() * 0.006);
+                    indiaBeaconMesh.scale.set(s, s, s);
+                }
+                earthRenderer.render(earthScene, earthCamera);
+            }
+        }
+
+        function onWindowResizeGlobe() {
+            if (!isGlobeInitialized) return;
+            const container = document.getElementById('earth-canvas-container');
+            if (!container) return;
+            const w = container.clientWidth || 280;
+            const h = container.clientHeight || 280;
+            earthCamera.aspect = w / h;
+            earthCamera.updateProjectionMatrix();
+            earthRenderer.setSize(w, h);
+        }
+        window.addEventListener('resize', onWindowResizeGlobe);
+
+        /********************************************************************
+         * 11. METRICS, TOAST NOTIFICATIONS & GLOBAL BINDINGS
+         ********************************************************************/
+        function refreshMetricsAndActiveViews() {
+            const total = casesData.length;
+            const pendingCases = casesData.filter(c => c.status === 'pending');
+            const deliveredCases = casesData.filter(c => c.status === 'delivered');
+
+            let greenCount = 0;
+            let amberCount = 0;
+            deliveredCases.forEach(c => {
+                if (checkCrossed4Years11Months(c.activation_date)) amberCount++;
+                else greenCount++;
+            });
+
+            const setTxt = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+
+            setTxt('stat-total', total);
+            setTxt('stat-work', pendingCases.length);
+            setTxt('stat-final-green', greenCount);
+            setTxt('stat-final-amber', amberCount);
+            setTxt('badge-work-count', pendingCases.length);
+            setTxt('badge-final-count', deliveredCases.length);
+            setTxt('home-card-work-badge', `${pendingCases.length} Pending`);
+            setTxt('home-card-final-badge', `${deliveredCases.length} Delivered`);
+        }
+
+        function showToast(message, tone = 'blue') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const colors = {
+                blue: 'border-blue-500/50 bg-slate-900/95 text-blue-200',
+                emerald: 'border-emerald-500/50 bg-slate-900/95 text-emerald-200',
+                amber: 'border-amber-500/50 bg-slate-900/95 text-amber-200',
+                red: 'border-red-500/50 bg-slate-900/95 text-red-200'
+            };
+            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl border shadow-xl backdrop-blur-md text-xs sm:text-sm flex items-start gap-2.5 transition-all duration-300 ${colors[tone] || colors.blue}`;
+            toast.innerHTML = `
+                <i class="fa-solid fa-circle-info mt-0.5"></i>
+                <span class="flex-1 leading-snug">${escapeHtml(message)}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Expose all handlers globally on window so inline onclick and addEventListener both work reliably
+        Object.assign(window, {
+            switchView,
+            promptPassword,
+            closePasswordModal,
+            verifyPassword,
+            lockPortalsAndGoHome,
+            regenerateAccountNo,
+            selectPaymentTier,
+            handleAccountSubmit,
+            renderScheduleTable,
+            markDelivered,
+            promptDelete,
+            executePermanentDelete,
+            performDepositorySearch,
+            syncComboSearch,
+            quickFillSearch,
+            showAllDeliveredCases,
+            clearDepositorySearch,
+            runExpiryCheckSweep,
+            openEditModal,
+            closeEditModal,
+            saveEditedCase,
+            openConfigModal,
+            closeConfigModal,
+            saveSupabaseConfig
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            refreshMetricsAndActiveViews();
+            regenerateAccountNo();
+            prepareAccountCreation();
+            animateEarthGlobe();
+            initSupabase();
+        });
+    </script>
+</body>
+</html>
